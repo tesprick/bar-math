@@ -1,0 +1,5223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Cocktail Laboratory</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body style="margin:0;background:#100c0a">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+/* ── Inline SVG icon components (no external dependency) ── */
+const Icon = ({size=24,strokeWidth=1.8,children,style,className}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round"
+    strokeLinejoin="round" style={style} className={className}>{children}</svg>
+);
+const Martini=(p)=><Icon {...p}><path d="M5 4h14l-7 9-7-9z"/><line x1="12" y1="13" x2="12" y2="20"/><line x1="9" y1="20" x2="15" y2="20"/></Icon>;
+const Wine=(p)=><Icon {...p}><path d="M8 22h8"/><path d="M12 11v11"/><path d="M6 2h12a6 6 0 0 1-6 10A6 6 0 0 1 6 2z"/></Icon>;
+const ShoppingBag=(p)=><Icon {...p}><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></Icon>;
+const BookOpen=(p)=><Icon {...p}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></Icon>;
+const Plus=(p)=><Icon {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
+const Minus=(p)=><Icon {...p}><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
+const Trash2=(p)=><Icon {...p}><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></Icon>;
+const Pencil=(p)=><Icon {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></Icon>;
+const Check=(p)=><Icon {...p}><polyline points="20,6 9,17 4,12"/></Icon>;
+const X=(p)=><Icon {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>;
+const Link2=(p)=><Icon {...p}><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></Icon>;
+const ImageIcon=(p)=><Icon {...p}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></Icon>;
+const FileText=(p)=><Icon {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></Icon>;
+const Sparkles=(p)=><Icon {...p}><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M5 3l.75 2.25L8 6l-2.25.75L5 9l-.75-2.25L2 6l2.25-.75L5 3z"/><path d="M19 13l.75 2.25L22 16l-2.25.75L19 19l-.75-2.25L16 16l2.25-.75L19 13z"/></Icon>;
+const Search=(p)=><Icon {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Icon>;
+const Loader2=(p)=><Icon {...p} className={p.className}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></Icon>;
+const ChevronDown=(p)=><Icon {...p}><polyline points="6,9 12,15 18,9"/></Icon>;
+const ChevronRight=(p)=><Icon {...p}><polyline points="9,18 15,12 9,6"/></Icon>;
+const FlaskConical=(p)=><Icon {...p}><path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></Icon>;
+const GripVertical=(p)=><Icon {...p}><circle cx="9" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1" fill="currentColor" stroke="none"/></Icon>;
+const CircleCheck=(p)=><Icon {...p}><circle cx="12" cy="12" r="10"/><polyline points="9,12 11,14 15,10"/></Icon>;
+const Settings=(p)=><Icon {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></Icon>;
+
+/* ----------------------------- storage layer ----------------------------- */
+const STORAGE_KEY = "cocktail_lab_v2";
+const DATA_VERSION = 7;
+const NEW_RECIPE_NAMES_V2 = new Set(["Bee Sting", "The Mystic One", "amaro cocktail", "Walnut Manhattan", "Monochromatic (J. Rieger & Co.)", "KC Vieux Carré", "Across the Pacific", "Southside", "Second Chance Martini", "Mark Twain Cocktail", "Mahogany Hall Gimlet", "Gallery Gimlet", "Summer Rain", "Giovanni Pompelmo", "Singapore Prospers", "Waterproof Watch", "Eastside Fizz", "Red Gin", "The Thrust and Parry", "My Old Piano", "Pumpernickel", "Ranch Hand", "Southern Baptist", "Old Pal", "Pendergast #2", "The Seelbach", "Bain's Existence", "Jerkwater", "Philly Sling", "Retox", "Blackbeard's Daiquiri", "Youthful Expression", "Just the Paperwork", "Braulio-Cano", "Sharpie Mustache", "Grandmother's Tea", "How Do I Compare", "Shipwrecked", "Something Like It", "Americano", "Boulevardier", "Morning Glory", "Monte Carlo", "Martini", "Negroni", "Rum Old Fashioned", "Cocchi Americano Classico", "French 75", "Pegu Club", "Chrysanthemum", "Ginger-Rye Smash"]);
+
+async function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return migrate(JSON.parse(raw));
+  } catch (e) { /* ignore */ }
+  return null;
+}
+async function persist(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+  catch (e) { console.error("save failed", e); }
+}
+
+/* ----------------------------- matching logic ---------------------------- */
+function normalize(s) {
+  return (s || "")
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\bfreshly squeezed\b/g, " ")
+    .replace(/\bfresh\b/g, " ")
+    .replace(/\bjuice of\b/g, " ")
+    .replace(/[.,;:]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+const ckey = (ing) => normalize(ing.canonical || ing.name);
+function fixIngredient(i) {
+  let name = (i.name || "").trim();
+  let amount = (i.amount || "").trim();
+  let canonical = (i.canonical || "").trim();
+  // move a leading unit word ("dash/dashes/drop/drops") out of the name into the amount
+  const m = name.match(/^(dash(?:es)?|drop(?:s)?)\s+/i);
+  if (m && /^[\d.\-/]+$/.test(amount.replace(/\s+/g, ""))) {
+    amount = (amount + " " + m[1].toLowerCase()).trim();
+    name = name.slice(m[0].length).trim();
+  }
+  if (canonical.toLowerCase() === "benedictine") canonical = "bénédictine";
+  return { ...i, name, amount, canonical };
+}
+function migrate(data) {
+  if (!data) return data;
+  const recipes = (data.recipes || []).map((r) => ({
+    ...r,
+    ingredients: (r.ingredients || []).map(fixIngredient),
+  }));
+  const pantry = (data.pantry || []).map((p) =>
+    p && p.toLowerCase() === "benedictine" ? "bénédictine" : p
+  );
+  return { ...data, recipes, pantry };
+}
+
+const required = (r) => (r.ingredients || []).filter((i) => !i.optional && !i.garnish);
+function pantryToSet(pantry) {
+  return new Set((pantry || []).map((p) => normalize(p)));
+}
+function missingFor(r, set) {
+  const seen = new Map();
+  required(r).forEach((i) => {
+    const k = ckey(i);
+    if (!set.has(k) && !seen.has(k)) seen.set(k, i.canonical || i.name);
+  });
+  return [...seen.entries()].map(([key, label]) => ({ key, label }));
+}
+const isMakeable = (r, set) => required(r).length > 0 && missingFor(r, set).length === 0;
+
+function rankAdditions(recipes, set) {
+  const map = new Map();
+  recipes.forEach((r) => {
+    if (isMakeable(r, set)) return;
+    const miss = missingFor(r, set);
+    miss.forEach((m) => {
+      if (!map.has(m.key)) map.set(m.key, { key: m.key, label: m.label, unlocks: [], helps: [] });
+      map.get(m.key).helps.push(r);
+      if (miss.length === 1) map.get(m.key).unlocks.push(r);
+    });
+  });
+  return [...map.values()].sort(
+    (a, b) =>
+      b.unlocks.length - a.unlocks.length ||
+      b.helps.length - a.helps.length ||
+      a.label.localeCompare(b.label)
+  );
+}
+
+function greedyList(recipes, baseSet, n) {
+  const set = new Set(baseSet);
+  const picks = [];
+  for (let i = 0; i < n; i++) {
+    const ranked = rankAdditions(recipes, set);
+    const best = ranked.find((r) => r.unlocks.length > 0);
+    if (!best) break;
+    set.add(best.key);
+    picks.push({ label: best.label, key: best.key, newCocktails: best.unlocks.map((c) => c.name) });
+  }
+  const total = recipes.filter((r) => isMakeable(r, set)).length;
+  return { picks, totalAfter: total };
+}
+
+/* ------------------------------- AI parsing ------------------------------ */
+const uid = () =>
+  (typeof crypto !== "undefined" && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : "id" + Math.random().toString(36).slice(2);
+
+function extractJSON(text) {
+  if (!text) return null;
+  let t = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  const tries = [t];
+  const a = t.indexOf("["), b = t.lastIndexOf("]");
+  if (a !== -1 && b > a) tries.push(t.slice(a, b + 1));
+  const c = t.indexOf("{"), d = t.lastIndexOf("}");
+  if (c !== -1 && d > c) tries.push(t.slice(c, d + 1));
+  for (const s of tries) {
+    try {
+      const v = JSON.parse(s);
+      return Array.isArray(v) ? v : [v];
+    } catch (e) { /* keep trying */ }
+  }
+  return null;
+}
+
+const SYS = `You convert cocktail recipes into clean JSON for a home-bar matching app.
+Return ONLY a JSON array (no prose, no markdown fences) of cocktail objects with this schema:
+{
+  "name": string,
+  "type": string,             // one of: Sour, Old Fashioned, Manhattan, Martini, Negroni, Tiki, Long — or "" if unsure
+  "instructions": string,           // concise, your own words
+  "notes": string,                  // tasting notes, attribution, riffs — "" if none
+  "ingredients": [
+    { "name": string,               // as written, e.g. "2 oz fresh lime juice" parts ok
+      "canonical": string,          // normalized for matching: lowercase, NO amounts, keep meaningful type
+      "amount": string,             // e.g. "2 oz", "0.75 oz", "2 dashes", "" if none
+      "optional": boolean,
+      "garnish": boolean }
+  ]
+}
+Canonical rules: drop quantities & the word "fresh"; KEEP meaningful modifiers that change matching
+("dry vermouth" vs "sweet vermouth", "white rum" vs "dark rum", "rye whiskey", "angostura bitters").
+Use shared canonicals where bartenders would substitute: Cointreau/triple sec -> "orange liqueur".
+Mark rims, peels, cherries, wheels, sprigs as garnish:true. Mark "optional"/"to taste" items optional:true.
+If several cocktails appear, return them all. Output JSON only.`;
+
+function getApiConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem("cocktaillab_apiconfig") || "{}");
+    return { apiKey: c.apiKey || "", model: c.model || "claude-sonnet-4-6" };
+  } catch(e) { return { apiKey: "", model: "claude-sonnet-4-6" }; }
+}
+
+async function callClaude({ messages, tools, max_tokens = 2000 }) {
+  const cfg = getApiConfig();
+  if (!cfg.apiKey) throw new Error("No API key set — open ⚙ Settings to add your Anthropic API key.");
+  const body = { model: cfg.model, max_tokens, system: SYS, messages };
+  if (tools) body.tools = tools;
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": cfg.apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err.error && err.error.message) || ("API error " + res.status));
+  }
+  const data = await res.json();
+  return (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
+}
+
+async function parseRecipe(mode, payload) {
+  let messages, tools;
+  if (mode === "text") {
+    messages = [{ role: "user", content: `Extract the cocktail recipe(s):\n\n${payload}` }];
+  } else if (mode === "link") {
+    tools = [{ type: "web_search_20250305", name: "web_search" }];
+    messages = [{
+      role: "user",
+      content: `Use web search to retrieve the cocktail recipe(s) at this page, then extract them: ${payload}`,
+    }];
+  } else if (mode === "image") {
+    messages = [{
+      role: "user",
+      content: [
+        { type: "image", source: { type: "base64", media_type: payload.media_type, data: payload.data } },
+        { type: "text", text: "Extract every cocktail recipe visible in this image." },
+      ],
+    }];
+  }
+  const text = await callClaude({ messages, tools });
+  const arr = extractJSON(text);
+  if (!arr) throw new Error("Could not read a recipe from that. Try pasting the text directly.");
+  return arr.map(normalizeParsed);
+}
+
+function normalizeParsed(c) {
+  return {
+    id: uid(),
+    name: (c.name || "Untitled").trim(),
+    type: c.type || "",
+    instructions: c.instructions || "",
+    notes: c.notes || "",
+    source: c.source || "",
+    ingredients: (c.ingredients || []).map((i) => fixIngredient({
+      name: (i.name || "").trim(),
+      canonical: (i.canonical || normalize(i.name) || "").trim(),
+      amount: i.amount || "",
+      optional: !!i.optional,
+      garnish: !!i.garnish,
+    })),
+  };
+}
+
+/* -------------------------------- seed data ------------------------------ */
+const ing = (name, canonical, amount, opts = {}) => ({ name, canonical, amount, optional: !!opts.o, garnish: !!opts.g });
+const SEED = [
+ {
+  "name": "Applejack Cocktail",
+  "instructions": "Recipe is in DeGroff book (pg. 78). Add the ingredients here to make it matchable.",
+  "notes": "Apple forward, but nice complexity with a couple different citrus elements. Great for early fall.",
+  "source": "DeGroff book",
+  "ingredients": [],
+  "type": ""
+ },
+ {
+  "name": "Bamboo",
+  "instructions": "Stir. Serve up.",
+  "notes": "Joaquín Simó adds a teaspoon of rich simple syrup.\n\nRyan McGrale splits the vermouth equally between  sweet and dry.",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "dry amontillado (preferred) or fino sherry",
+    "canonical": "amontillado sherry",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange bitters",
+    "canonical": "orange bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ango",
+    "canonical": "angostura bitters",
+    "amount": "1-2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Bee's Knees",
+  "instructions": "Shake.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "honey simple syrup",
+    "canonical": "honey syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Bénédictine Sour",
+  "instructions": "Shake. Serve on the rocks.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon wheel",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Black Manhattan",
+  "instructions": "Stir. Serve up.",
+  "notes": "Per imbibe, created by Todd Smith at Bourbon & Branch (SF).\nI find the original 2:1 recipe far more like an old fashioned than a manhattan.\nhttps://imbibemagazine.com/recipe/black-manhattan-recipe/",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Averna",
+    "canonical": "averna",
+    "amount": "0.75-1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Ango",
+    "canonical": "angostura bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash orange bitters",
+    "canonical": "orange bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cherry",
+    "canonical": "cherry",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Bourbon Potation",
+  "instructions": "Shake and top with sage leaf.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Domaine de Canton",
+    "canonical": "domaine de canton",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "apple butter syrup",
+    "canonical": "apple butter syrup",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Sage leaf",
+    "canonical": "sage",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Business Time",
+  "instructions": "Dry shake all ingredients but bitters. Add ice and shake again. Double strain into chilled coupe. Let settle for 15-20 seconds then add bitters and swirl.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "brandy",
+    "canonical": "brandy",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon/lime juice (equal mixture)",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "cinnamon orgeat",
+    "canonical": "cinnamon orgeat",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "egg white",
+    "canonical": "egg white",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "4 drops",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Champs-Élysées",
+  "instructions": "Shake. Strain into coupe. Garnish with lemon twist.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "cognac",
+    "canonical": "cognac",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "green chartreuse",
+    "canonical": "green chartreuse",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple",
+    "canonical": "simple syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Ango",
+    "canonical": "angostura bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Cobble Hill",
+  "instructions": "Muddle cucumber. Add ice and incredients and stir. Serve up with a twist.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "amaro montenegro",
+    "canonical": "amaro montenegro",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "cucumber",
+    "canonical": "cucumber",
+    "amount": "2 chunks",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Cocktail à la Louisiane (dry)",
+  "instructions": "Stir. Serve up.",
+  "notes": "A fantastic Manhattan substitute.",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "(10 ml) Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "2 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "(5 ml) sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "4 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "(light 0.25 ml) absinthe",
+    "canonical": "absinthe",
+    "amount": "4 drops",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Cocktail à la Louisiane (sweet)",
+  "instructions": "Stir. Serve up.",
+  "notes": "Sweet like an Old Fashioned. Maybe play around with serving on a rock w/ garnish?\n\nCould make less sweet by using 0.5 oz Bénédictine",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "4 drops",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "(light 0.25 ml) absinthe",
+    "canonical": "absinthe",
+    "amount": "4 drops",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Coin Toss",
+  "instructions": "Stir. Serve up.",
+  "notes": "Death & Co creation originally made with The Scarlet Ibis rum, Carpano Antica, and D&C’s house Peychaud’s (2 parts Peychaud’s + 1 part Bitter Truth Creole bitters).\n\nBartender's choice on base spirit. “could be Rittenhouse 100, Laird’s Bonded, Santa Teresa 1796, Hine Cognac, Famous Grouse…” Great with rum and rye.\n\n25% dilution (20% of final drink = water",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "dark rum (ideally ~100°) or other dark spirit",
+    "canonical": "dark rum",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "yellow Chartreuse",
+    "canonical": "yellow chartreuse",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud’s bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Corpse Reviver #2",
+  "instructions": "Shake. Serve up.",
+  "notes": "https://punchdrink.com/recipes/alicia-perrys-corpse-reviver-no-2/",
+  "source": "Polite Provisions (San Diego) via Punch",
+  "ingredients": [
+   {
+    "name": "Plymouth gin",
+    "canonical": "gin",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lillet Blanc",
+    "canonical": "lillet blanc",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cointreau",
+    "canonical": "triple sec",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "pastis rinse",
+    "canonical": "absinthe",
+    "amount": "",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon twis",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Daiquiri",
+  "instructions": "Shake.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "light rum",
+    "canonical": "white rum",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "2:1 demerara syrup",
+    "canonical": "demerara syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Espresso Manhattan",
+  "instructions": "Shake. Serve up.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "Rieger's KC Whiskey",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "espresso",
+    "canonical": "espresso",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Rieger's Caffè Amaro",
+    "canonical": "coffee amaro",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "vanilla simple syrup (or demerara or regular)",
+    "canonical": "vanilla syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "Gin Martini",
+  "instructions": "Stir, serve up in a chilled coupe, and garnish with a lemon peel.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "Roku gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dolin dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange bitters",
+    "canonical": "orange bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Ginger Collins",
+  "instructions": "Shake first three ingredients. Strain over ice in a Collins glass. Top with club soda and garnish with lemon.",
+  "notes": "Domaine de Canton's recipe.",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Domaine de Canton",
+    "canonical": "domaine de canton",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "club soda",
+    "canonical": "soda water",
+    "amount": "3 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Gold Rush",
+  "instructions": "Shake and serve up with a twist.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "1.5-2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Domaine de Canton",
+    "canonical": "domaine de canton",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "honey simple syrup (1.5:1)",
+    "canonical": "honey syrup",
+    "amount": "1.5 tsp",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Greenpoint",
+  "instructions": "Stir. Serve up.",
+  "notes": "Milk & Honey",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Yellow Chartreuse",
+    "canonical": "yellow chartreuse",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Ango",
+    "canonical": "angostura bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash orange bitters",
+    "canonical": "orange bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Heathcock",
+  "instructions": "Stir.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Gran Classico",
+    "canonical": "gran classico",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "green chartreuse",
+    "canonical": "green chartreuse",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange bitters",
+    "canonical": "orange bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Negroni"
+ },
+ {
+  "name": "It's Tee Time Somewhere",
+  "instructions": "Stir. Serve on the rocks.",
+  "notes": "",
+  "source": "a.kitchen (Philly)",
+  "ingredients": [
+   {
+    "name": "apple brandy",
+    "canonical": "apple brandy",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "amontillado sherry",
+    "canonical": "amontillado sherry",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "nocino",
+    "canonical": "nocino",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "honey simple syrup",
+    "canonical": "honey syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Ango",
+    "canonical": "angostura bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash orange bitters",
+    "canonical": "orange bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Jack Rose",
+  "instructions": "Shake. Serve up.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "apple brandy",
+    "canonical": "apple brandy",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "grenadine",
+    "canonical": "grenadine",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Peychaud's",
+    "canonical": "peychaud's bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Jasmine",
+  "instructions": "Shake.",
+  "notes": "Very tart, fairly bitter.",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "triple sec",
+    "canonical": "triple sec",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Campari (or other bitter red liqueur)",
+    "canonical": "campari",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist (optional)",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Lansky",
+  "instructions": "Shake.",
+  "notes": "Credited to Galli in NYC.",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ramazzotti",
+    "canonical": "ramazzotti",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Aperol",
+    "canonical": "aperol",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Lion's Tail",
+  "instructions": "Shake. Serve up.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "allspice dram",
+    "canonical": "allspice dram",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.25-0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ango",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Mai Tai",
+  "instructions": "Shake. Serve on the rocks.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "Jamaican rum",
+    "canonical": "jamaican rum",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "curaçao",
+    "canonical": "orange curaçao",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orgeat",
+    "canonical": "orgeat",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup w/ drop or two of vanilla extract",
+    "canonical": "vanilla syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Tiki"
+ },
+ {
+  "name": "Manhattan",
+  "instructions": "Stir. Serve up.",
+  "notes": "A riff on a Jerry Thomas Manhattan.",
+  "source": "The Restaurant at 1900 (KC)",
+  "ingredients": [
+   {
+    "name": "Old Overholt Bonded Rye",
+    "canonical": "rye whiskey",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "A.E. D’Or VSOP Cognac",
+    "canonical": "cognac",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Pierre Ferrand Dry Curaçao",
+    "canonical": "orange curaçao",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "house vermouth (2 parts Dolin Rouge, 1 part Carpano Antica, 1 part Cocchi Americano)",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "house bitters (2 parts Angostura, 1 part Regan’s orange)",
+    "canonical": "angostura bitters",
+    "amount": "3-4 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange peel",
+    "canonical": "orange peel",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Manhattan (Jerry Thomas)",
+  "instructions": "Stir. Serve up.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange liqueur",
+    "canonical": "triple sec",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ango",
+    "canonical": "angostura bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange peel",
+    "canonical": "orange peel",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Manhattan (Perfect)",
+  "instructions": "Stir.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Margarita",
+  "instructions": "Shake. Serve on the rocks.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "tequila",
+    "canonical": "tequila",
+    "amount": "3 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cointreau",
+    "canonical": "triple sec",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Salt rim",
+    "canonical": "salt",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Naked & Famous",
+  "instructions": "Shake. Strain into chilled coupe.",
+  "notes": "",
+  "source": "Joaquín Simó (Death & Co., NYC)",
+  "ingredients": [
+   {
+    "name": "mezcal (Del Maguey Chichicapa)",
+    "canonical": "mezcal",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "yellow Chartreuse",
+    "canonical": "yellow chartreuse",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "aperol",
+    "canonical": "aperol",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Old Fashioned",
+  "instructions": "Stir and serve over a big rock in an Old Fashioned glass with an orange peel garnish.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "Evan Williams White Label",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "pink House Alchemy sarsaparilla simple syrup",
+    "canonical": "sarsaparilla syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "Old Fashioned (BDK, SF)",
+  "instructions": "Stir. Serve on the rocks.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "H by Hine cognac",
+    "canonical": "cognac",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Evan Williams Black bourbon",
+    "canonical": "bourbon",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "demerara syrup (1:1)",
+    "canonical": "demerara syrup",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange bitters",
+    "canonical": "orange bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Orange twists",
+    "canonical": "orange twists",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "Old Fashioned (Polo Bar, NYC)",
+  "instructions": "Stir. Serve on the rocks.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon (Jefferson's)",
+    "canonical": "bourbon",
+    "amount": "2.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Demerara syrup",
+    "canonical": "demerara syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ango",
+    "canonical": "angostura bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's",
+    "canonical": "peychaud's bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash wormwood bitters",
+    "canonical": "wormwood bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange twist",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "Opening Act",
+  "instructions": "Shake first four ingredients with ice and top with tonic water.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "Domaine de Canton",
+    "canonical": "domaine de canton",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Campari",
+    "canonical": "campari",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange bitters",
+    "canonical": "orange bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "tonic water",
+    "canonical": "tonic water",
+    "amount": "2.5 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Poet’s Dream",
+  "instructions": "Stir. Serve up.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange bitters",
+    "canonical": "orange bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Prince's Infinite Decorum",
+  "instructions": "Stir. Serve up.",
+  "notes": "Adapted from The Gibson in DC.",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "straight apple brandy",
+    "canonical": "apple brandy",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "blanc vermouth",
+    "canonical": "blanc vermouth",
+    "amount": "1.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cardamaro",
+    "canonical": "cardamaro",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Zirbenz alpine liqueur",
+    "canonical": "zirbenz",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Quadrophenia",
+  "instructions": "",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Averna",
+    "canonical": "averna",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amer Picon",
+    "canonical": "amer picon",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Old Forester Bohemian Bitters (cherry tobacco)",
+    "canonical": "old forester bohemian bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Ramos Gin Fizz",
+  "instructions": "Reverse dry shake. (100x each fine; more probably better)\nStrain into collins glass and top with seltzer.\n(Immersion blender??)",
+  "notes": "Adapted from IJHFTD and Liquor.com",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "heavy cream (try 1.5?)",
+    "canonical": "heavy cream",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orange flower water (try 2?)",
+    "canonical": "orange flower water",
+    "amount": "3 drops",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "fresh egg white",
+    "canonical": "egg white",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "seltzer",
+    "canonical": "soda water",
+    "amount": "",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Saint Jacques District",
+  "instructions": "Recipe is in IJHFTD (pg 141). Add the ingredients here to make it matchable.",
+  "notes": "A very good sour with added complexity from Cognac, grenadine, and Cointreau.",
+  "source": "IJHFTD",
+  "ingredients": [],
+  "type": ""
+ },
+ {
+  "name": "Sazerac",
+  "instructions": "Stir. Serve up in a chilled rocks glass with a twist.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "absinthe",
+    "canonical": "absinthe",
+    "amount": "0.25 ml",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's",
+    "canonical": "peychaud's bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash Angostura",
+    "canonical": "angostura bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "Vieux Carré",
+  "instructions": "Combine all ingredients in a mixing glass and fill with ice; stir well for 20 seconds and strain into an ice-filled Old Fashioned glass. Garnish with a lemon peel.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "cognac",
+    "canonical": "cognac",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's",
+    "canonical": "peychaud's bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Ward Eight",
+  "instructions": "Recipe is in DeGroff book (pg 217). Add the ingredients here to make it matchable.",
+  "notes": "Perfect sweet-sour balance (for C)",
+  "source": "DeGroff book",
+  "ingredients": [],
+  "type": ""
+ },
+ {
+  "name": "Whirl-Y-Gig",
+  "instructions": "Shake. Pour into rocks glass over ice. Top with club soda.",
+  "notes": "The Clove Club",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "apple brandy",
+    "canonical": "apple brandy",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dandelion & burdock (or Ango) bitters",
+    "canonical": "angostura bitters",
+    "amount": "4 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "club soda",
+    "canonical": "soda water",
+    "amount": "",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Whiskey Sour",
+  "instructions": "Shake. If using egg white, dry shake then add ice and shake again.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "egg white",
+    "canonical": "egg white",
+    "amount": "1",
+    "optional": true,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Witty Comeback",
+  "instructions": "Shake and serve up or on the rocks with an orange twist.",
+  "notes": "",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "rye",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Averna amaro",
+    "canonical": "averna",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "ginger simple syrup",
+    "canonical": "ginger syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Yamabuki",
+  "instructions": "Stir. Serve up.",
+  "notes": "",
+  "source": "Evan Leihy ,  Swordfish Cocktail Club , Greenville, South Carolina; https://imbibemagazine.com/recipe/yamabuki-whisky-cocktail/",
+  "ingredients": [
+   {
+    "name": "Japanese whisky",
+    "canonical": "japanese whisky",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dolin blanc",
+    "canonical": "blanc vermouth",
+    "amount": "0.75",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amaro Montenegro",
+    "canonical": "amaro montenegro",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "dash orange bitters",
+    "canonical": "orange bitters",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Bee Sting",
+  "instructions": "Muddle jalapeño gently in shaker. Add liquid ingredients and ice and shake. Serve up.",
+  "notes": "A tequila gold rush/bee's knees",
+  "source": "https://www.seriouseats.com/recipes/2012/03/bee-sting-tequila-bees-knees-recipe.html",
+  "ingredients": [
+   {
+    "name": "reposado tequila",
+    "canonical": "tequila",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "honey syrup (2:1)",
+    "canonical": "honey syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Jalapeño slice",
+    "canonical": "jalapeño",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "The Mystic One",
+  "instructions": "Shake.",
+  "notes": "Geh, where did I find this???",
+  "source": "",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "cinnamon syrup",
+    "canonical": "cinnamon syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "sage leaves",
+    "canonical": "sage",
+    "amount": "3",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "amaro cocktail",
+  "instructions": "First make orgeat:\n2 cups raw pecans\n2 tsp black peppercorns\n1.5 tsp coriander seeds\n1 tsp whole allspice\n2 cups sugar\n\nToast all but sugar over medium heat until slightly darkened in color and fragrant, about 5 minutes. Add sugar and 1⅓ cups water and bring to a boil, stirring to dissolve sugar. Let cool and strain through a fine-mesh sieve into a heatproof measuring glass; discard solids.\n\nCocktail:\nCombine amaro, rye, lemon juice, and ¾ oz. orgeat in a shaker filled with ice. Shake until outside of shaker is frosty, about 30 seconds. Double-strain into a glass, then return to shaker. Add egg white, cover, and shake again until frothy, about 1 minute. Pour into a chilled coupe glass and top with a pecan.",
+  "notes": "via Bon App",
+  "source": "https://www.bonappetit.com/recipe/amaro-cocktail",
+  "ingredients": [
+   {
+    "name": "Amaro Montenegro",
+    "canonical": "amaro montenegro",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "100° rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "egg white",
+    "canonical": "egg white",
+    "amount": "1",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Walnut Manhattan",
+  "instructions": "Stir. Strain into rocks glass over ice.",
+  "notes": "Ann-Marie Verdi, The Bellwether, Los Angeles\nfrom Imbibe",
+  "source": "https://imbibemagazine.com/recipe/walnut-manhattan/",
+  "ingredients": [
+   {
+    "name": "bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Punt e Mes",
+    "canonical": "punt e mes",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "walnut liqueur",
+    "canonical": "walnut liqueur",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Maraschino cherries",
+    "canonical": "maraschino cherries",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Monochromatic (J. Rieger & Co.)",
+  "instructions": "Combine all ingredients in a mixing glass and stir until cold and properly diluted. Strain into a cold rocks with new ice. Garnish with a lemon swath.",
+  "notes": "",
+  "source": "https://www.jriegerco.com/cocktailrecipes/monochromatic",
+  "ingredients": [
+   {
+    "name": "Rieger's Kansas City Whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Rieger's Caffè Amaro",
+    "canonical": "coffee amaro",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Pedro Ximenez sherry (Barbadillo pref'd)",
+    "canonical": "pedro ximénez sherry",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Pierre Ferrand Dry Curaçao",
+    "canonical": "orange curaçao",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "simple syrup",
+    "canonical": "simple syrup",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ango",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "KC Vieux Carré",
+  "instructions": "Stir and strain into Nick and Nora glass. Express and discard orange zest.",
+  "notes": "From Brendan Biggins at Grand Army Bar (NYC)",
+  "source": "https://www.jriegerco.com/cocktailrecipes/kc-vieux-carre",
+  "ingredients": [
+   {
+    "name": "Kansas City Whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bertoux Brandy",
+    "canonical": "brandy",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Carpano Antica",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Caffè Amaro",
+    "canonical": "coffee amaro",
+    "amount": "6 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Across the Pacific",
+  "instructions": "",
+  "notes": "",
+  "source": "https://www.liquor.com/across-the-pacific-cocktail-recipe-5083941",
+  "ingredients": [
+   {
+    "name": "Appleton Reserve rum",
+    "canonical": "aged rum",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Smith & Cross Jamaican rum",
+    "canonical": "jamaican rum",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Averna",
+    "canonical": "averna",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "orgeat",
+    "canonical": "orgeat",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime wheel",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Grated nutmeg",
+    "canonical": "grated nutmeg",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Tiki"
+ },
+ {
+  "name": "Southside",
+  "instructions": "Bruise 1 mint sprig with the lime juice and simple syrup in the bottom of a shaker. Add gin and ice and shake well. Pour into a goblet over cracked ice, add club soda, and stir until the outside of the glass frosts.",
+  "notes": "House drink of the 21 Club for years — a kind of Mint Julep for the gin-and-tonic crowd.",
+  "source": "The New Craft of the Cocktail (DeGroff)",
+  "ingredients": [
+   {
+    "name": "Gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Mint sprigs",
+    "canonical": "mint",
+    "amount": "2",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Club soda",
+    "canonical": "soda water",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Mint sprig",
+    "canonical": "mint",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Second Chance Martini",
+  "instructions": "Combine all ingredients except the garnish in a mixing glass with ice and stir. Strain into a large chilled cocktail glass and garnish with the cucumber slice.",
+  "notes": "A variation on the Vesper Martini from Casino Royale — Bond's second chance, stirred not shaken.",
+  "source": "The New Craft of the Cocktail (DeGroff)",
+  "ingredients": [
+   {
+    "name": "Hendrick's gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Reyka vodka",
+    "canonical": "vodka",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Martini Riserva Speciale Ambrato vermouth",
+    "canonical": "ambrato vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dale DeGroff's Pimento Aromatic Bitters",
+    "canonical": "pimento bitters",
+    "amount": "4 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "English cucumber slice",
+    "canonical": "cucumber",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Mark Twain Cocktail",
+  "instructions": "Shake all ingredients with ice and strain into a chilled cocktail glass.",
+  "notes": "As described by Twain to his wife in a letter from London, 1874.",
+  "source": "The New Craft of the Cocktail (DeGroff)",
+  "ingredients": [
+   {
+    "name": "Scotch whisky",
+    "canonical": "scotch whisky",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Mahogany Hall Gimlet",
+  "instructions": "Shake with ice and fine-strain into a rocks glass filled with ice. Garnish with a thin lime wheel.",
+  "notes": "Made for the Gallery Bars aboard Holland America Line.",
+  "source": "The New Craft of the Cocktail (DeGroff)",
+  "ingredients": [
+   {
+    "name": "Beefeater gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Grapefruit juice",
+    "canonical": "grapefruit juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Triple Syrup",
+    "canonical": "triple syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dale DeGroff's Pimento Aromatic Bitters",
+    "canonical": "pimento bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime wheel",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Gallery Gimlet",
+  "instructions": "Frost rim of a cocktail glass with black Hawaiian sea salt and chill. Shake all other ingredients (except lime wheel garnish) with ice and strain into the salted, chilled glass. Garnish with lime wheel.",
+  "notes": "Made for Holland America Line's Gallery Bars. Handwritten note: shake w/ shiso leaf? Chilee yuzu gimlet",
+  "source": "The New Craft of the Cocktail (DeGroff)",
+  "ingredients": [
+   {
+    "name": "Plymouth gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Yuzu juice",
+    "canonical": "yuzu juice",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Triple Syrup",
+    "canonical": "triple syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Black Hawaiian sea salt rim",
+    "canonical": "black hawaiian sea salt",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Lime wheel",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Summer Rain",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Low-ABV variation = Spring Rain: omit gin, increase Montenegro to 2 oz.",
+  "instructions": "Vigorously shake all ingredients (reserving one cucumber slice for garnish) with plenty of ice to break up the cucumbers. Double-strain into a chilled coupe.",
+  "ingredients": [
+   {
+    "name": "Plymouth gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amaro Montenegro",
+    "canonical": "amaro montenegro",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ginger syrup",
+    "canonical": "ginger syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittermens Celery Shrub",
+    "canonical": "celery shrub",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cucumber",
+    "canonical": "cucumber",
+    "amount": "3 slices",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cucumber slice",
+    "canonical": "cucumber",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Giovanni Pompelmo",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Juicy + bright. Make it royal by substituting sparkling wine for the seltzer.",
+  "instructions": "Pour first four ingredients into a 10-oz Collins glass and add ice. Gently stir to cool. Top with seltzer.",
+  "ingredients": [
+   {
+    "name": "Old Duff Genever",
+    "canonical": "genever",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cocchi Rosa",
+    "canonical": "cocchi rosa",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Aperol",
+    "canonical": "aperol",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Grapefruit bitters",
+    "canonical": "grapefruit bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Seltzer",
+    "canonical": "soda water",
+    "amount": "top",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Grapefruit twist",
+    "canonical": "grapefruit juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Singapore Prospers",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Juicy + malty — each ingredient comes through.",
+  "instructions": "Combine all ingredients in a mixing glass with plenty of ice. Stir to chill and dilute. Strain into a rocks glass over fresh ice.",
+  "ingredients": [
+   {
+    "name": "Genever",
+    "canonical": "genever",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Old Tom gin",
+    "canonical": "old tom gin",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Carpano Antica",
+    "canonical": "sweet vermouth",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dry Curaçao",
+    "canonical": "orange curaçao",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittermens Burlesque Bitters",
+    "canonical": "burlesque bitters",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Scrappy's Lime Bitters",
+    "canonical": "lime bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Waterproof Watch",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "A bit sweet — try ¼ oz Campari?",
+  "instructions": "Stir all ingredients with plenty of ice in a large mixing glass. Strain into an Old Fashioned glass with fresh ice.",
+  "ingredients": [
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amaro Montenegro",
+    "canonical": "amaro montenegro",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Aperol",
+    "canonical": "aperol",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "DeGroff's Pimento Bitters",
+    "canonical": "pimento bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Negroni"
+ },
+ {
+  "name": "Eastside Fizz",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "In a shaker, muddle mint and cucumber. Add remaining ingredients and shake with ice. Double-strain into a Highball glass filled with ice. Top with seltzer.",
+  "ingredients": [
+   {
+    "name": "Gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Heavy syrup",
+    "canonical": "simple syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cucumber",
+    "canonical": "cucumber",
+    "amount": "2 slices",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Mint leaves",
+    "canonical": "mint",
+    "amount": "6",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Seltzer",
+    "canonical": "soda water",
+    "amount": "top",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Mint sprig",
+    "canonical": "mint",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Cucumber slice",
+    "canonical": "cucumber",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Red Gin",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Combine all ingredients in an Old Fashioned glass. Add ice and stir a few times to combine.",
+  "ingredients": [
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Homemade grenadine",
+    "canonical": "grenadine",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Seltzer",
+    "canonical": "soda water",
+    "amount": "splash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "The Thrust and Parry",
+  "source": "Gaz Regan (I'm Just Here for the Drinks (Teague))",
+  "notes": "",
+  "instructions": "Combine scotch and Domaine de Canton over ice and stir to chill. Coat the inside of a chilled Nick and Nora glass with the mezcal as a rinse. Strain the cocktail in.",
+  "ingredients": [
+   {
+    "name": "Highland Park 12-year scotch",
+    "canonical": "scotch whisky",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Domaine de Canton ginger liqueur",
+    "canonical": "domaine de canton",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Del Maguey Vida Mezcal (rinse)",
+    "canonical": "mezcal",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Candied ginger skewer",
+    "canonical": "candied ginger",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "My Old Piano",
+  "source": "Ari Form (I'm Just Here for the Drinks (Teague))",
+  "notes": "Created by Ari Form at Amor y Amargo. Kümmel is a coriander, cumin, and fennel seed liqueur.",
+  "instructions": "Stir over ice and serve up in an Old Fashioned glass. No garnish.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Carpano Antica",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Mezcal",
+    "canonical": "mezcal",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Kümmel",
+    "canonical": "kümmel",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Apple bitters",
+    "canonical": "apple bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Pumpernickel",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Sother Says: if too spicy, back off the Angostura. But why would you hurt me like that?",
+  "instructions": "Stir with plenty of ice to chill and dilute. Strain into a chilled glass. Express a lemon twist over the top and discard.",
+  "ingredients": [
+   {
+    "name": "100° rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amaro Abano",
+    "canonical": "amaro abano",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Punt e Mes",
+    "canonical": "punt e mes",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters (ya, 7!)",
+    "canonical": "angostura bitters",
+    "amount": "7 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist (expressed, discarded)",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "Ranch Hand",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Serve as a make-ahead batch in a flask (refrigerate overnight with sarsaparilla). Or pour over ice and top with your favorite root beer.",
+  "instructions": "Pour rye and Jägermeister into a glass bottle or flask. Top with sarsaparilla syrup to fill. Seal and refrigerate overnight. Alternatively, serve over ice and top with root beer. No garnish.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Jägermeister",
+    "canonical": "jägermeister",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Sarsaparilla syrup",
+    "canonical": "sarsaparilla syrup",
+    "amount": "to fill",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Southern Baptist",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Combine ingredients in a shaker. Add ice, shake vigorously, and double-strain into a Collins glass. Garnish with candied ginger.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Fresh lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ginger syrup",
+    "canonical": "ginger syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Candied ginger",
+    "canonical": "candied ginger",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Old Pal",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Stir with ice. Strain into a chilled cocktail glass. Express lemon twist over the top and discard.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Campari",
+    "canonical": "campari",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist (expressed, discarded)",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Negroni"
+ },
+ {
+  "name": "Pendergast #2",
+  "source": "Ryan Maybee",
+  "notes": "",
+  "instructions": "Combine all ingredients in a mixing glass with ice and stir until well-chilled. Strain into a chilled rocks glass without ice.",
+  "ingredients": [
+   {
+    "name": "J. Rieger's Kansas City Whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange bitters",
+    "canonical": "orange bitters",
+    "amount": "3-4 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon zest",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Manhattan"
+ },
+ {
+  "name": "The Seelbach",
+  "source": "Adam Seger (I'm Just Here for the Drinks (Teague))",
+  "notes": "Cut bitters in half.",
+  "instructions": "In a mixing glass three-quarters filled with ice, combine bourbon, triple sec, and both bitters. Stir until chilled, about 30 seconds. Strain into a Champagne flute and top with sparkling wine.",
+  "ingredients": [
+   {
+    "name": "Bourbon",
+    "canonical": "bourbon",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Triple sec",
+    "canonical": "triple sec",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "7 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "7 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Brut sparkling wine",
+    "canonical": "sparkling wine",
+    "amount": "5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Bain's Existence",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Shake all ingredients with ice. Strain into a double Old Fashioned glass with ice.",
+  "ingredients": [
+   {
+    "name": "Bourbon",
+    "canonical": "bourbon",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Rothman & Winter Orchard Apricot",
+    "canonical": "apricot liqueur",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon oleo saccharum",
+    "canonical": "lemon oleo saccharum",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Peychaud's bitters",
+    "canonical": "peychaud's bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Macerated apricot",
+    "canonical": "apricot",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Jerkwater",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "A whiskey-driven take on the Cosmopolitan.",
+  "instructions": "Shake and strain into a chilled Nick and Nora glass. No garnish.",
+  "ingredients": [
+   {
+    "name": "American whiskey",
+    "canonical": "american whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dry Curaçao (Pierre Ferrand)",
+    "canonical": "orange curaçao",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Hibiscus tea syrup",
+    "canonical": "hibiscus syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Philly Sling",
+  "source": "Derek Brown",
+  "notes": "",
+  "instructions": "Shake all ingredients with ice. Strain into a chilled cocktail glass.",
+  "ingredients": [
+   {
+    "name": "Calvados",
+    "canonical": "calvados",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Plymouth Sloe Gin",
+    "canonical": "sloe gin",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Fresh lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Fee Brothers Whiskey Barrel-Aged Bitters",
+    "canonical": "whiskey barrel bitters",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Retox",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Muddle jalapeño in the base of the shaker tin. Add syrup, lemon juice, and tequila. Shake vigorously with ice. Double-strain into a half-salted-rim glass over fresh ice.",
+  "ingredients": [
+   {
+    "name": "Reposado tequila",
+    "canonical": "tequila",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Grade B maple syrup",
+    "canonical": "maple syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Fresh lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Jalapeño",
+    "canonical": "jalapeño",
+    "amount": "2-3 slices",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Kosher salt rim",
+    "canonical": "salt",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Lemon slice",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Blackbeard's Daiquiri",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Rich and ruinous, like its titular pirate captain.",
+  "instructions": "Shake all ingredients together with ice. Double-strain into a chilled coupe.",
+  "ingredients": [
+   {
+    "name": "Dark rum",
+    "canonical": "dark rum",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Brown sugar syrup",
+    "canonical": "brown sugar syrup",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittercube Blackstrap Bitters",
+    "canonical": "blackstrap bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime wheel",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Sour"
+ },
+ {
+  "name": "Youthful Expression",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Combine first four ingredients in a Collins glass. Add ice and gently stir to chill. Pour seltzer down the spiral of a bar spoon to fill. No garnish.",
+  "ingredients": [
+   {
+    "name": "Ramazzotti",
+    "canonical": "ramazzotti",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bourbon",
+    "canonical": "bourbon",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittercube Cherry Bark Vanilla Bitters",
+    "canonical": "cherry bark vanilla bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Seltzer",
+    "canonical": "soda water",
+    "amount": "top",
+    "optional": false,
+    "garnish": false
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Just the Paperwork",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Build all ingredients in a Rocks glass and serve neat.",
+  "ingredients": [
+   {
+    "name": "Amaro Nonino",
+    "canonical": "amaro nonino",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cognac",
+    "canonical": "cognac",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cocchi Americano",
+    "canonical": "cocchi americano",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange bitters",
+    "canonical": "orange bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Water",
+    "canonical": "water",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "Braulio-Cano",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Build in a Highball glass. Add ice and stir to chill. Pour seltzer down the spiral of a bar spoon to fill.",
+  "ingredients": [
+   {
+    "name": "Braulio",
+    "canonical": "braulio",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cocchi Rosa",
+    "canonical": "cocchi rosa",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittermens Orange Citrate",
+    "canonical": "orange citrate bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Seltzer",
+    "canonical": "soda water",
+    "amount": "top",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ },
+ {
+  "name": "Sharpie Mustache",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Stir with plenty of ice to chill and dilute. Serve up or in a 100ml glass flask.",
+  "ingredients": [
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "100° rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amaro Meletti",
+    "canonical": "amaro meletti",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bonal Gentiane Quina",
+    "canonical": "bonal",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittermens 'Elemakule Tiki Bitters",
+    "canonical": "tiki bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Negroni"
+ },
+ {
+  "name": "Grandmother's Tea",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "Easily scaled up for a pitcher.",
+  "instructions": "Stir all ingredients over plenty of ice to chill and dilute. Strain into a rocks glass over fresh ice.",
+  "ingredients": [
+   {
+    "name": "Louis Royer Force 53 Cognac",
+    "canonical": "cognac",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Blanc vermouth",
+    "canonical": "blanc vermouth",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amaro del Capo",
+    "canonical": "amaro del capo",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Strega",
+    "canonical": "strega",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bittermens Orange Cream Citrate",
+    "canonical": "orange cream citrate bitters",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Martini"
+ },
+ {
+  "name": "How Do I Compare",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Pour all ingredients into a Rocks glass without ice. Orange twist, discarded.",
+  "ingredients": [
+   {
+    "name": "Apple brandy",
+    "canonical": "apple brandy",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bourbon",
+    "canonical": "bourbon",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Cointreau",
+    "canonical": "triple sec",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Apple bitters",
+    "canonical": "apple bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist (discarded)",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Old Fashioned"
+ },
+ {
+  "name": "Shipwrecked",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Shake with ice and strain into a chilled coupe.",
+  "ingredients": [
+   {
+    "name": "El Dorado 8-Year Rum",
+    "canonical": "aged rum",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Del Maguey Vida Mezcal",
+    "canonical": "mezcal",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Amber agave nectar",
+    "canonical": "agave nectar",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime wheel",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Tiki"
+ },
+ {
+  "name": "Something Like It",
+  "source": "I'm Just Here for the Drinks (Teague)",
+  "notes": "",
+  "instructions": "Build in a Collins glass. Add ice. Top with seltzer.",
+  "ingredients": [
+   {
+    "name": "Meletti amaro",
+    "canonical": "amaro meletti",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "White rum",
+    "canonical": "white rum",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Scrappy's Lime Bitters",
+    "canonical": "lime bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Seltzer",
+    "canonical": "soda water",
+    "amount": "top",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime wedge",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ],
+  "type": "Long"
+ }
+,
+{
+  "name": "Americano",
+  "type": "Long",
+  "source": "https://athomemixology.com/americano/",
+  "notes": "Gran Classico or Ramazzotti work as Campari substitutes.",
+  "instructions": "Pour Campari and vermouth over ice and top with soda water to taste (about 2 oz). Stir to combine.",
+  "ingredients": [
+   {
+    "name": "Campari",
+    "canonical": "campari",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Soda water",
+    "canonical": "soda water",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange slice or twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Boulevardier",
+  "type": "Negroni",
+  "source": "https://athomemixology.com/boulevardier/",
+  "notes": "Also great on the rocks. Try Aperol or Gran Classico in place of Campari.",
+  "instructions": "Fill a mixing glass ~2/3 with ice. Stir well 20-30 seconds. Strain into a chilled cocktail glass.",
+  "ingredients": [
+   {
+    "name": "Bourbon or rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Campari",
+    "canonical": "campari",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist or cherry",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Morning Glory",
+  "type": "Old Fashioned",
+  "source": "https://athomemixology.com/morning-glory/",
+  "notes": "Originally a hair-of-the-dog cure, now a complex OF riff. Jerry Thomas, 1887. Wondrich: try Champagne instead of seltzer at your own peril.",
+  "instructions": "Stir everything except soda in an ice-filled mixing glass ~30 seconds. Express lemon or orange peel into a chilled glass and drop in the peel. Strain cocktail in, add a rock if desired, and top with a splash of club soda.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Brandy",
+    "canonical": "brandy",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Simple syrup",
+    "canonical": "simple syrup",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Curaçao or Grand Marnier",
+    "canonical": "triple sec",
+    "amount": "0.5 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Absinthe",
+    "canonical": "absinthe",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Club soda",
+    "canonical": "soda water",
+    "amount": "0.25-1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon or orange twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Monte Carlo",
+  "type": "Old Fashioned",
+  "source": "https://athomemixology.com/monte-carlo/",
+  "notes": "Build in the glass like an OF. Try yellow Chartreuse, Strega, or Licor 43 in place of Bénédictine.",
+  "instructions": "Build in the glass. Express a strip of lemon peel into the glass and add the peel. Add ice (preferably one big cube). Add the liquids and stir ~20 seconds.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "3 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Martini",
+  "type": "Martini",
+  "source": "https://athomemixology.com/martini/",
+  "notes": "Gin is traditional; vodka works too. Try Fee Brothers Gin Barrel-Aged Orange Bitters or Celery Bitters.",
+  "instructions": "Combine in an ice-filled mixing glass and stir 20-30 seconds. Strain into a chilled cocktail glass.",
+  "ingredients": [
+   {
+    "name": "Gin (or vodka)",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange or lemon bitters",
+    "canonical": "orange bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Olive or lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Negroni",
+  "type": "Negroni",
+  "source": "https://athomemixology.com/negroni/",
+  "notes": "Too bitter? Swap Campari for Aperol. Need more? Use Punt e Mes for the sweet vermouth. Mezcal for gin is also excellent.",
+  "instructions": "Combine in an ice-filled mixing glass and stir 20-30 seconds. Strain into a chilled rocks glass over fresh ice. Express an orange twist and garnish.",
+  "ingredients": [
+   {
+    "name": "Gin",
+    "canonical": "gin",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Sweet vermouth",
+    "canonical": "sweet vermouth",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Campari",
+    "canonical": "campari",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Rum Old Fashioned",
+  "type": "Old Fashioned",
+  "source": "https://athomemixology.com/rum-old-fashioned/",
+  "notes": "Demerara brings out the vanilla notes in the rum.",
+  "instructions": "Combine in an ice-filled mixing glass and stir 20-30 seconds. Strain over fresh ice in a chilled rocks glass.",
+  "ingredients": [
+   {
+    "name": "Aged rum",
+    "canonical": "aged rum",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Demerara syrup",
+    "canonical": "demerara syrup",
+    "amount": "0.25 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Fee Brothers Whiskey Barrel-Aged bitters",
+    "canonical": "whiskey barrel bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Cocchi Americano Classico",
+  "type": "Long",
+  "source": "https://athomemixology.com/cocchi-americano-classico/",
+  "notes": "Italy in springtime. Lillet Blanc works but gives a sweeter result. Cocchi Americano is the closest modern substitute for Kina Lillet.",
+  "instructions": "Express an orange peel into a chilled rocks glass and drop in the peel. Add ice, then Cocchi Americano and soda water. Stir to combine.",
+  "ingredients": [
+   {
+    "name": "Cocchi Americano",
+    "canonical": "cocchi americano",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Soda water",
+    "canonical": "soda water",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "French 75",
+  "type": "Long",
+  "source": "https://athomemixology.com/french-75/",
+  "notes": "Named after a WWI-era field gun. Arnaud's in New Orleans makes it with Cognac — try brandy as a more accessible sub.",
+  "instructions": "Shake gin, lemon, and simple syrup with ice until chilled. Pour into a Champagne flute, top with sparkling wine, garnish with lemon twist.",
+  "ingredients": [
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Simple syrup",
+    "canonical": "simple syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dry sparkling wine",
+    "canonical": "sparkling wine",
+    "amount": "2-3 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon twist",
+    "canonical": "lemon juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Pegu Club",
+  "type": "Sour",
+  "source": "https://athomemixology.com/pegu-club/",
+  "notes": "Developed at the Pegu Club in colonial Burma. The now-closed NYC bar of the same name is greatly mourned.",
+  "instructions": "Shake with ice ~10 seconds. Strain into a chilled cocktail glass.",
+  "ingredients": [
+   {
+    "name": "London Dry gin",
+    "canonical": "gin",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Dry curaçao",
+    "canonical": "orange curaçao",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime juice",
+    "canonical": "lime juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange bitters",
+    "canonical": "orange bitters",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura bitters",
+    "canonical": "angostura bitters",
+    "amount": "1 dash",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lime twist or wheel",
+    "canonical": "lime juice",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Chrysanthemum",
+  "type": "Martini",
+  "source": "https://athomemixology.com/chrysanthemum/",
+  "notes": "Low-proof, herbal, adaptable pre-dinner drink. AHM prefers 0.75 oz Bénédictine and 1 tsp absinthe. Try half Béné / half green Chartreuse for more herbal depth.",
+  "instructions": "Stir in an ice-filled mixing glass 20-30 seconds. Strain into a chilled cocktail glass.",
+  "ingredients": [
+   {
+    "name": "Dry vermouth",
+    "canonical": "dry vermouth",
+    "amount": "2 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Bénédictine",
+    "canonical": "bénédictine",
+    "amount": "0.75 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Absinthe",
+    "canonical": "absinthe",
+    "amount": "1 tsp",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Orange twist",
+    "canonical": "orange",
+    "amount": "",
+    "optional": false,
+    "garnish": true
+   }
+  ]
+ },
+ {
+  "name": "Ginger-Rye Smash",
+  "type": "Sour",
+  "source": "",
+  "notes": "",
+  "instructions": "Shake with ice. Double-strain into a chilled coupe.",
+  "ingredients": [
+   {
+    "name": "Rye whiskey",
+    "canonical": "rye whiskey",
+    "amount": "1.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Domaine de Canton",
+    "canonical": "domaine de canton",
+    "amount": "1 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Lemon juice",
+    "canonical": "lemon juice",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Ginger syrup",
+    "canonical": "ginger syrup",
+    "amount": "0.5 oz",
+    "optional": false,
+    "garnish": false
+   },
+   {
+    "name": "Angostura or Whiskey Barrel-Aged bitters",
+    "canonical": "angostura bitters",
+    "amount": "2 dashes",
+    "optional": false,
+    "garnish": false
+   }
+  ]
+ }
+].map(normalizeParsed);
+
+/* ================================ UI ===================================== */
+const TABS = [
+  { id: "make", label: "Tonight", icon: Martini },
+  { id: "bar", label: "My Bar", icon: Wine },
+  { id: "recipes", label: "Recipe Book", icon: BookOpen },
+  { id: "shop", label: "Shopping", icon: ShoppingBag },
+];
+
+function App() {
+  const [loaded, setLoaded] = useState(false);
+  const [pantry, setPantry] = useState([]);
+  const [recipes, setRecipes] = useState([]);
+  const [tab, setTab] = useState("make");
+  const [showSettings, setShowSettings] = useState(false);
+  const first = useRef(true);
+
+  useEffect(() => {
+    (async () => {
+      const data = await loadData();
+      if (data) {
+        let recipes = data.recipes || SEED;
+        if ((data.dataVersion || 0) < DATA_VERSION) {
+          const have = new Set(recipes.map((r) => r.name));
+          const additions = SEED.filter((r) => NEW_RECIPE_NAMES_V2.has(r.name) && !have.has(r.name));
+          if (additions.length) {
+            recipes = [...recipes, ...additions];
+            persist({ pantry: data.pantry || [], recipes, dataVersion: DATA_VERSION });
+          }
+        }
+        const sMap = Object.fromEntries(SEED.map(r=>[r.name,r.type]).filter(([,t])=>t));
+        recipes = recipes.map(r=>r.type?r:{...r,type:sMap[r.name]||""});
+        setPantry(data.pantry || []);
+        setRecipes(recipes);
+      } else {
+        setRecipes(SEED);
+      }
+      setLoaded(true);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    if (first.current) { first.current = false; return; }
+    persist({ pantry, recipes, dataVersion: DATA_VERSION });
+  }, [pantry, recipes, loaded]);
+
+  const set = useMemo(() => pantryToSet(pantry), [pantry]);
+  const makeable = useMemo(() => recipes.filter((r) => isMakeable(r, set)), [recipes, set]);
+
+  const addToBar = (label) => {
+    const k = normalize(label);
+    if (!pantry.some((p) => normalize(p) === k)) setPantry((p) => [...p, label].sort((a, b) => a.localeCompare(b)));
+  };
+  const removeFromBar = (label) => setPantry((p) => p.filter((x) => x !== label));
+
+  return (
+    <div className="cl-root">
+      <style>{CSS}</style>
+      <div className="cl-grain" />
+      <header className="cl-head">
+        <div className="cl-head-rule" />
+        <div className="cl-head-mid">
+          <FlaskConical size={20} strokeWidth={1.4} />
+          <div>
+            <h1>The Cocktail Laboratory</h1>
+            <p>{makeable.length} of {recipes.length} pourable tonight · {pantry.length} bottles on the shelf</p>
+          </div>
+          <FlaskConical size={20} strokeWidth={1.4} style={{ transform: "scaleX(-1)" }} />
+        </div>
+        <div className="cl-head-rule" />
+      </header>
+      <button className="cl-settings-btn" onClick={() => setShowSettings(true)} title="API Settings">
+        <Settings size={16} strokeWidth={1.4}/>
+      </button>
+
+      <nav className="cl-tabs">
+        {TABS.map((t) => {
+          const I = t.icon;
+          return (
+            <button key={t.id} className={"cl-tab" + (tab === t.id ? " on" : "")} onClick={() => setTab(t.id)}>
+              <I size={15} strokeWidth={1.6} /> <span>{t.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      <main className="cl-main">
+        {!loaded ? (
+          <div className="cl-empty"><Loader2 className="spin" size={22} /> Polishing the glassware…</div>
+        ) : tab === "make" ? (
+          <MakeTab recipes={recipes} set={set} addToBar={addToBar} />
+        ) : tab === "bar" ? (
+          <BarTab recipes={recipes} pantry={pantry} set={set} addToBar={addToBar} removeFromBar={removeFromBar} />
+        ) : tab === "recipes" ? (
+          <RecipesTab recipes={recipes} setRecipes={setRecipes} />
+        ) : (
+          <ShopTab recipes={recipes} set={set} addToBar={addToBar} />
+        )}
+      </main>
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+    </div>
+  );
+}
+
+function SettingsPanel({ onClose }) {
+  const [cfg, setCfg] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cocktaillab_apiconfig") || "{}"); }
+    catch(e) { return {}; }
+  });
+  const save = () => {
+    localStorage.setItem("cocktaillab_apiconfig", JSON.stringify(cfg));
+    onClose();
+  };
+  return (
+    <div className="cl-modal-overlay" onClick={onClose}>
+      <div className="cl-modal" onClick={e => e.stopPropagation()}>
+        <div className="cl-rowbtns">
+          <h3 style={{fontFamily:"'Fraunces',serif",fontWeight:600,fontSize:22,margin:0,color:"var(--ink)"}}>API Settings</h3>
+          <button className="cl-btn ghost" onClick={onClose}><X size={14}/> Close</button>
+        </div>
+        <p className="cl-note">Enter your Anthropic API key to enable recipe import from text, links, and photos. Your key is stored only in your browser's local storage and never sent anywhere except Anthropic's API.</p>
+        <Field label="Anthropic API Key">
+          <input className="cl-input" type="password" placeholder="sk-ant-api03-…"
+            value={cfg.apiKey || ""} onChange={e => setCfg({...cfg, apiKey: e.target.value})} />
+        </Field>
+        <Field label="Model (leave blank for default: claude-sonnet-4-6)">
+          <input className="cl-input" placeholder="claude-sonnet-4-6"
+            value={cfg.model || ""} onChange={e => setCfg({...cfg, model: e.target.value})} />
+        </Field>
+        <p className="cl-note" style={{color:"var(--ox)"}}>⚠ Only use this on a trusted personal device. Anyone with access to your browser's localStorage can read the key.</p>
+        <div className="cl-rowbtns end">
+          <button className="cl-btn gold" onClick={save}><Check size={14}/> Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+/* ------------------------------ Tonight tab ------------------------------ */
+function MakeTab({ recipes, set, addToBar }) {
+  const makeable = recipes.filter((r) => isMakeable(r, set));
+  const oneAway = recipes
+    .map((r) => ({ r, miss: missingFor(r, set) }))
+    .filter((x) => x.miss.length === 1)
+    .sort((a, b) => a.r.name.localeCompare(b.r.name));
+
+  if (recipes.length === 0)
+    return <div className="cl-empty">Your recipe book is empty. Add some recipes to get started.</div>;
+
+  return (
+    <div className="cl-col">
+      <SectionTitle>Ready to pour <em>{makeable.length}</em></SectionTitle>
+      {makeable.length === 0 ? (
+        <p className="cl-note">Nothing fully stocked yet — check “one sip away” below, or add bottles in My Bar.</p>
+      ) : (
+        <div className="cl-grid">{makeable.map((r) => <RecipeCard key={r.id} r={r} set={set} />)}</div>
+      )}
+
+      {oneAway.length > 0 && (
+        <>
+          <SectionTitle>One sip away <em>{oneAway.length}</em></SectionTitle>
+          <p className="cl-note">Each of these needs exactly one more thing.</p>
+          <div className="cl-grid">
+            {oneAway.map(({ r, miss }) => (
+              <RecipeCard key={r.id} r={r} set={set} missing={miss} onGet={() => addToBar(miss[0].label)} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function RecipeCard({ r, set, missing, onGet }) {
+  const [open, setOpen] = useState(false);
+  const dim = missing && missing.length > 0;
+  return (
+    <article className={"cl-card" + (dim ? " dim" : "")}>
+      <div className="cl-card-top" onClick={() => setOpen((o) => !o)}>
+        <h3>{r.name}</h3>
+        {r.type && <span className="cl-type">{r.type}</span>}
+      </div>
+      <ul className="cl-ings">
+        {r.ingredients.map((i, idx) => {
+          const have = set.has(ckey(i)) || i.garnish;
+          return (
+            <li key={idx} className={have ? "have" : "need"}>
+              <span className="amt">{i.amount}</span>
+              <span className="nm">{i.name}{i.optional ? " (optional)" : ""}{i.garnish ? " · garnish" : ""}</span>
+            </li>
+          );
+        })}
+      </ul>
+      {dim && (
+        <div className="cl-missing">
+          <span>Missing: <strong>{missing.map((m) => m.label).join(", ")}</strong></span>
+          {onGet && <button className="cl-mini" onClick={onGet}><Plus size={12} /> Add to bar</button>}
+        </div>
+      )}
+      {(r.instructions || r.notes) && (
+        <button className="cl-method" onClick={() => setOpen((o) => !o)}>
+          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {r.instructions ? "Method" : "Notes"}
+        </button>
+      )}
+      {open && (r.instructions || r.notes) && (
+        <div className="cl-instrwrap">
+          {r.instructions && <p className="cl-instr">{r.instructions}{r.source ? <> · <a href={r.source} target="_blank" rel="noreferrer">source</a></> : null}</p>}
+          {r.notes && <p className="cl-notesline"><span>Notes</span> {r.notes}</p>}
+        </div>
+      )}
+    </article>
+  );
+}
+
+/* -------------------------------- Bar tab -------------------------------- */
+function BarTab({ recipes, pantry, set, addToBar, removeFromBar }) {
+  const [q, setQ] = useState("");
+  const [custom, setCustom] = useState("");
+
+  const vocab = useMemo(() => {
+    const m = new Map();
+    recipes.forEach((r) => r.ingredients.forEach((i) => {
+      if (i.garnish) return;
+      const k = ckey(i);
+      if (!m.has(k)) m.set(k, i.canonical || i.name);
+    }));
+    return [...m.values()].sort((a, b) => a.localeCompare(b));
+  }, [recipes]);
+
+  const filtered = vocab.filter((v) => v.toLowerCase().includes(q.toLowerCase()));
+
+  return (
+    <div className="cl-col">
+      <SectionTitle>On the shelf <em>{pantry.length}</em></SectionTitle>
+      {pantry.length === 0 ? (
+        <p className="cl-note">Tap ingredients below to mark what you own.</p>
+      ) : (
+        <div className="cl-chips">
+          {pantry.map((p) => (
+            <button key={p} className="cl-chip on" onClick={() => removeFromBar(p)}>
+              <Check size={12} /> {p} <X size={12} className="rm" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="cl-addrow">
+        <input className="cl-input" placeholder="Add something not listed (e.g. mezcal)"
+          value={custom} onChange={(e) => setCustom(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && custom.trim()) { addToBar(custom.trim()); setCustom(""); } }} />
+        <button className="cl-btn" disabled={!custom.trim()} onClick={() => { addToBar(custom.trim()); setCustom(""); }}>
+          <Plus size={14} /> Add
+        </button>
+      </div>
+
+      <SectionTitle>Ingredients in your recipes</SectionTitle>
+      <p className="cl-note">These come straight from your recipe book, so spellings always match.</p>
+      <div className="cl-search">
+        <Search size={14} />
+        <input placeholder="Filter ingredients…" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      <div className="cl-chips">
+        {filtered.map((v) => {
+          const have = set.has(normalize(v));
+          return (
+            <button key={v} className={"cl-chip" + (have ? " on" : "")}
+              onClick={() => (have ? removeFromBar(pantry.find((p) => normalize(p) === normalize(v)) || v) : addToBar(v))}>
+              {have ? <Check size={12} /> : <Plus size={12} />} {v}
+            </button>
+          );
+        })}
+        {filtered.length === 0 && <span className="cl-note">No matches.</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Recipes tab ------------------------------ */
+function RecipesTab({ recipes, setRecipes }) {
+  const [editing, setEditing] = useState(null); // recipe object or "new"
+  const [q, setQ] = useState("");
+
+  const list = recipes
+    .filter((r) => r.name.toLowerCase().includes(q.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const save = (r) => {
+    setRecipes((rs) => {
+      const i = rs.findIndex((x) => x.id === r.id);
+      if (i === -1) return [...rs, r];
+      const cp = [...rs]; cp[i] = r; return cp;
+    });
+    setEditing(null);
+  };
+  const saveMany = (arr) => { setRecipes((rs) => [...rs, ...arr]); setEditing(null); };
+  const del = (id) => setRecipes((rs) => rs.filter((r) => r.id !== id));
+
+  if (editing) return <RecipeEditor initial={editing === "new" ? null : editing} onSave={save} onSaveMany={saveMany} onCancel={() => setEditing(null)} />;
+
+  return (
+    <div className="cl-col">
+      <div className="cl-rowbtns">
+        <SectionTitle>Recipe book <em>{recipes.length}</em></SectionTitle>
+        <button className="cl-btn gold" onClick={() => setEditing("new")}><Plus size={14} /> Add recipe</button>
+      </div>
+      <div className="cl-search">
+        <Search size={14} />
+        <input placeholder="Search recipes…" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      <div className="cl-list">
+        {list.map((r) => (
+          <div key={r.id} className="cl-listitem">
+            <div>
+              <div className="cl-listname"><h4>{r.name}</h4>{r.type && <span className="cl-typebadge">{r.type}</span>}</div>
+              <p>{r.ingredients.filter((i) => !i.garnish).map((i) => i.canonical || i.name).join(" · ")}</p>
+            </div>
+            <div className="cl-listactions">
+              <button onClick={() => setEditing(r)} title="Edit"><Pencil size={15} /></button>
+              <button onClick={() => del(r.id)} title="Delete"><Trash2 size={15} /></button>
+            </div>
+          </div>
+        ))}
+        {list.length === 0 && <p className="cl-note">No recipes yet.</p>}
+      </div>
+    </div>
+  );
+}
+
+function RecipeEditor({ initial, onSave, onSaveMany, onCancel }) {
+  const [mode, setMode] = useState(initial ? "manual" : "text");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [textIn, setTextIn] = useState("");
+  const [linkIn, setLinkIn] = useState("");
+  const [img, setImg] = useState(null);
+  const [draft, setDraft] = useState(
+    initial || { id: uid(), name: "", type: "", instructions: "", notes: "", source: "", ingredients: [{ name: "", canonical: "", amount: "", optional: false, garnish: false }] }
+  );
+  const [extra, setExtra] = useState([]); // additional parsed cocktails beyond the first
+  const [dragIdx, setDragIdx] = useState(null);
+  const [overIdx, setOverIdx] = useState(null);
+  const moveIng = (from, to) => {
+    if (from == null || to == null || from === to) return;
+    setDraft((d) => {
+      const ings = [...d.ingredients];
+      const [moved] = ings.splice(from, 1);
+      ings.splice(to, 0, moved);
+      return { ...d, ingredients: ings };
+    });
+  };
+
+  const run = async (m, payload) => {
+    setBusy(true); setErr("");
+    try {
+      const parsed = await parseRecipe(m, payload);
+      if (!parsed.length) throw new Error("No recipe found.");
+      setDraft(parsed[0]);
+      setExtra(parsed.slice(1));
+      setMode("manual");
+    } catch (e) { setErr(e.message || "Something went wrong."); }
+    finally { setBusy(false); }
+  };
+
+  const onFile = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => setImg({ media_type: f.type, data: String(reader.result).split(",")[1], preview: reader.result });
+    reader.readAsDataURL(f);
+  };
+
+  const setIng = (i, key, val) => setDraft((d) => {
+    const ings = d.ingredients.map((x, idx) => idx === i ? { ...x, [key]: val } : x);
+    return { ...d, ingredients: ings };
+  });
+  const addIng = () => setDraft((d) => ({ ...d, ingredients: [...d.ingredients, { name: "", canonical: "", amount: "", optional: false, garnish: false }] }));
+  const rmIng = (i) => setDraft((d) => ({ ...d, ingredients: d.ingredients.filter((_, idx) => idx !== i) }));
+
+  const commit = () => {
+    const clean = { ...draft, name: draft.name.trim(), ingredients: draft.ingredients.filter((i) => (i.name || "").trim()).map((i) => ({ ...i, canonical: (i.canonical || normalize(i.name)).trim() })) };
+    if (extra.length) onSaveMany([clean, ...extra]);
+    else onSave(clean);
+  };
+
+  return (
+    <div className="cl-col">
+      <div className="cl-rowbtns">
+        <SectionTitle>{initial ? "Edit recipe" : "Add a recipe"}</SectionTitle>
+        <button className="cl-btn ghost" onClick={onCancel}><X size={14} /> Cancel</button>
+      </div>
+
+      {!initial && (
+        <div className="cl-modeswitch">
+          {[["text", FileText, "Paste recipe"], ["link", Link2, "From a link"], ["image", ImageIcon, "From a photo"]].map(([m, I, lab]) => (
+            <button key={m} className={"cl-modebtn" + (mode === m ? " on" : "")} onClick={() => setMode(m)}><I size={14} /> {lab}</button>
+          ))}
+        </div>
+      )}
+
+      {!initial && mode === "text" && (
+        <div className="cl-col">
+          <textarea className="cl-area" rows={6} placeholder={"Paste a recipe, e.g.\nNegroni\n1 oz gin, 1 oz Campari, 1 oz sweet vermouth\nStir, orange peel."} value={textIn} onChange={(e) => setTextIn(e.target.value)} />
+          <button className="cl-btn gold" disabled={busy || !textIn.trim()} onClick={() => run("text", textIn)}>
+            {busy ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />} Read with Claude
+          </button>
+        </div>
+      )}
+      {!initial && mode === "link" && (
+        <div className="cl-col">
+          <input className="cl-input" placeholder="https://… a cocktail recipe page" value={linkIn} onChange={(e) => setLinkIn(e.target.value)} />
+          <button className="cl-btn gold" disabled={busy || !linkIn.trim()} onClick={() => run("link", linkIn.trim())}>
+            {busy ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />} Fetch & read
+          </button>
+          <p className="cl-note">Claude will search the web to retrieve the page. Some sites block this — if it stalls, paste the text instead.</p>
+        </div>
+      )}
+      {!initial && mode === "image" && (
+        <div className="cl-col">
+          <label className="cl-file">
+            <input type="file" accept="image/*" onChange={onFile} />
+            <ImageIcon size={16} /> {img ? "Choose a different photo" : "Choose a photo of a recipe"}
+          </label>
+          {img && <img src={img.preview} alt="recipe" className="cl-preview" />}
+          <button className="cl-btn gold" disabled={busy || !img} onClick={() => run("image", img)}>
+            {busy ? <Loader2 size={14} className="spin" /> : <Sparkles size={14} />} Read photo
+          </button>
+        </div>
+      )}
+
+      {err && <div className="cl-err"><X size={14} /> {err}</div>}
+
+      {(initial || mode === "manual") && (
+        <div className="cl-editor">
+          {extra.length > 0 && <div className="cl-multi"><CircleCheck size={14} /> Found {extra.length + 1} cocktails. Review the first below; the rest save automatically.</div>}
+          <div className="cl-frow">
+            <Field label="Name"><input className="cl-input" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></Field>
+            <Field label="Type"><select className="cl-select" value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}><option value="">—</option>{["Sour","Old Fashioned","Manhattan","Martini","Negroni","Tiki","Long"].map(t=><option key={t} value={t}>{t}</option>)}</select></Field>
+          </div>
+
+          <label className="cl-flabel">Ingredients</label>
+          <div className="cl-edings">
+            <div className="cl-edhead"><span /><span>Amount</span><span>Ingredient</span><span>Match name</span><span /></div>
+            {draft.ingredients.map((i, idx) => (
+              <div key={idx}
+                className={"cl-edrow" + (dragIdx === idx ? " dragging" : "") + (overIdx === idx ? " over" : "")}
+                onDragOver={(e) => { e.preventDefault(); if (overIdx !== idx) setOverIdx(idx); }}
+                onDrop={() => { moveIng(dragIdx, idx); setDragIdx(null); setOverIdx(null); }}>
+                <span className="cl-grip" draggable
+                  onDragStart={(e) => { setDragIdx(idx); e.dataTransfer.effectAllowed = "move"; }}
+                  onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+                  title="Drag to reorder"><GripVertical size={14} /></span>
+                <input className="cl-input sm" value={i.amount} placeholder="2 oz" onChange={(e) => setIng(idx, "amount", e.target.value)} />
+                <input className="cl-input" value={i.name} placeholder="Gin" onChange={(e) => setIng(idx, "name", e.target.value)} />
+                <input className="cl-input" value={i.canonical} placeholder="gin" onChange={(e) => setIng(idx, "canonical", e.target.value)} />
+                <button className="cl-iconbtn" onClick={() => rmIng(idx)} title="Delete ingredient"><Minus size={14} /></button>
+              </div>
+            ))}
+            <button className="cl-mini" onClick={addIng}><Plus size={12} /> Add ingredient</button>
+          </div>
+
+          <Field label="Method"><textarea className="cl-area" rows={3} value={draft.instructions} onChange={(e) => setDraft({ ...draft, instructions: e.target.value })} /></Field>
+          <Field label="Notes (optional)"><textarea className="cl-area" rows={2} placeholder="Tasting notes, attribution, riffs to try…" value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} /></Field>
+          <Field label="Source (optional)"><input className="cl-input" value={draft.source} onChange={(e) => setDraft({ ...draft, source: e.target.value })} /></Field>
+
+          <div className="cl-rowbtns end">
+            <button className="cl-btn ghost" onClick={onCancel}>Cancel</button>
+            <button className="cl-btn gold" disabled={!draft.name.trim()} onClick={commit}><Check size={14} /> Save{extra.length ? ` all ${extra.length + 1}` : ""}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------ Shopping tab ----------------------------- */
+function ShopTab({ recipes, set, addToBar }) {
+  const [n, setN] = useState(3);
+  const ranked = useMemo(() => rankAdditions(recipes, set), [recipes, set]);
+  const topUnlocks = ranked.filter((r) => r.unlocks.length > 0);
+  const helpers = ranked.filter((r) => r.unlocks.length === 0 && r.helps.length > 0).slice(0, 8);
+  const baseCount = recipes.filter((r) => isMakeable(r, set)).length;
+  const plan = useMemo(() => greedyList(recipes, set, n), [recipes, set, n]);
+  const [open, setOpen] = useState(null);
+
+  return (
+    <div className="cl-col">
+      <SectionTitle>Smartest single additions</SectionTitle>
+      <p className="cl-note">Ranked by how many cocktails each bottle would <em>immediately</em> unlock — i.e. recipes where it’s the only thing you’re missing.</p>
+      {topUnlocks.length === 0 ? (
+        <p className="cl-note">No single ingredient finishes a recipe right now. Try the shopping list below, which plans several buys together.</p>
+      ) : (
+        <div className="cl-list">
+          {topUnlocks.map((r) => (
+            <div key={r.key} className="cl-listitem col">
+              <div className="cl-shoprow">
+                <button className="cl-disc" onClick={() => setOpen(open === r.key ? null : r.key)}>
+                  {open === r.key ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  <span className="cl-shopname">{r.label}</span>
+                </button>
+                <span className="cl-badge">+{r.unlocks.length} cocktail{r.unlocks.length > 1 ? "s" : ""}</span>
+                <button className="cl-btn gold sm" onClick={() => addToBar(r.label)}><Plus size={13} /> Add</button>
+              </div>
+              {open === r.key && (
+                <p className="cl-instr">Unlocks: {r.unlocks.map((c) => c.name).join(", ")}
+                  {r.helps.length > r.unlocks.length ? ` · also moves ${r.helps.length - r.unlocks.length} more closer` : ""}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <SectionTitle>Build a shopping list</SectionTitle>
+      <p className="cl-note">Greedy plan: each pick is chosen <em>after</em> assuming you bought the ones before it, so the bottles work together.</p>
+      <div className="cl-stepper">
+        <span>Buy</span>
+        <button onClick={() => setN(Math.max(1, n - 1))}><Minus size={14} /></button>
+        <strong>{n}</strong>
+        <button onClick={() => setN(Math.min(10, n + 1))}><Plus size={14} /></button>
+        <span>ingredient{n > 1 ? "s" : ""}</span>
+      </div>
+      {plan.picks.length === 0 ? (
+        <p className="cl-note">No additional unlocks available with your current recipes.</p>
+      ) : (
+        <div className="cl-plan">
+          <ol>
+            {plan.picks.map((p, idx) => (
+              <li key={p.key}>
+                <div className="cl-planhead">
+                  <span><b>{idx + 1}.</b> {p.label}</span>
+                  <button className="cl-btn gold sm" onClick={() => addToBar(p.label)}><Plus size={13} /> Add</button>
+                </div>
+                <span className="cl-planmeta">unlocks {p.newCocktails.join(", ")}</span>
+              </li>
+            ))}
+          </ol>
+          <div className="cl-plantotal">
+            <Martini size={16} /> These {plan.picks.length} would take you from <b>{baseCount}</b> to <b>{plan.totalAfter}</b> makeable cocktails.
+          </div>
+        </div>
+      )}
+
+      {helpers.length > 0 && (
+        <>
+          <SectionTitle>Also worth keeping an eye on</SectionTitle>
+          <div className="cl-chips">
+            {helpers.map((h) => (
+              <span key={h.key} className="cl-chip ghost">{h.label} · in {h.helps.length} recipes</span>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------- tiny bits ------------------------------- */
+function SectionTitle({ children }) { return <h2 className="cl-sec">{children}</h2>; }
+function Field({ label, children }) { return <div className="cl-field"><label className="cl-flabel">{label}</label>{children}</div>; }
+
+/* --------------------------------- styles -------------------------------- */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+.cl-root{--bg:#100c0a;--bg2:#19120e;--panel:#1f1812;--panel2:#261d15;--line:#3a2c20;--ink:#f2e7d4;--mut:#b29a78;--mut2:#8a7559;--gold:#cda135;--gold2:#e7c668;--ox:#8a3b34;--grn:#5f7a5a;
+  position:relative;font-family:'Spectral',Georgia,serif;color:var(--ink);background:
+  radial-gradient(120% 90% at 50% -10%, #241a12 0%, var(--bg) 60%);
+  min-height:100%;padding:0 0 40px;overflow:hidden;}
+.cl-grain{position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+.cl-root *{box-sizing:border-box}
+.cl-head{padding:26px 20px 14px;text-align:center}
+.cl-head-rule{height:1px;background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent);opacity:.5}
+.cl-head-mid{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 0;color:var(--gold)}
+.cl-head h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(26px,5vw,40px);letter-spacing:.5px;margin:0;color:var(--ink);font-optical-sizing:auto}
+.cl-head p{margin:6px 0 0;color:var(--mut);font-size:13px;letter-spacing:.4px;font-style:italic}
+.cl-tabs{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;padding:0 12px 8px;position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--bg) 70%,transparent)}
+.cl-tab{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid transparent;color:var(--mut);
+  font-family:'Fraunces',serif;font-weight:600;font-size:13px;letter-spacing:.6px;text-transform:uppercase;padding:9px 15px;border-radius:2px;cursor:pointer;transition:.18s}
+.cl-tab:hover{color:var(--ink)}
+.cl-tab.on{color:var(--bg);background:var(--gold);box-shadow:0 2px 14px -4px var(--gold)}
+.cl-main{max-width:880px;margin:0 auto;padding:14px 18px}
+.cl-col{display:flex;flex-direction:column;gap:14px}
+.cl-sec{font-family:'Fraunces',serif;font-weight:600;font-size:15px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);
+  margin:18px 0 2px;display:flex;align-items:center;gap:10px}
+.cl-sec:before{content:"";flex:0 0 22px;height:1px;background:var(--gold);opacity:.6}
+.cl-sec em{font-style:normal;color:var(--gold);font-size:13px;border:1px solid var(--line);border-radius:99px;padding:1px 9px}
+.cl-note{color:var(--mut2);font-size:13.5px;font-style:italic;margin:0;line-height:1.5}
+.cl-note em{color:var(--mut);font-style:italic}
+.cl-empty{text-align:center;color:var(--mut);padding:60px 20px;display:flex;gap:10px;align-items:center;justify-content:center;font-style:italic}
+.spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+
+.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px}
+.cl-card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:4px;padding:15px 16px;
+  box-shadow:0 10px 30px -22px #000;transition:.2s;animation:rise .4s both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.cl-card:hover{border-color:var(--gold);box-shadow:0 14px 30px -20px var(--gold)}
+.cl-card.dim{opacity:.92}
+.cl-card-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;cursor:pointer}
+.cl-card h3{font-family:'Fraunces',serif;font-weight:600;font-size:21px;margin:0;color:var(--ink)}
+.cl-type{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.cl-select{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:9px 12px;color:var(--ink);font-family:'Spectral';font-size:14px;outline:none;cursor:pointer;width:100%;appearance:none;-webkit-appearance:none}
+.cl-select:focus{border-color:var(--gold)}
+.cl-listname{display:flex;align-items:baseline;gap:9px}
+.cl-typebadge{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);border:1px solid var(--line);border-radius:99px;padding:1px 8px;white-space:nowrap}
+.cl-ings{list-style:none;margin:11px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}
+.cl-ings li{display:flex;gap:9px;font-size:14px;align-items:baseline}
+.cl-ings .amt{flex:0 0 58px;text-align:right;color:var(--mut2);font-variant-numeric:tabular-nums;font-size:12.5px}
+.cl-ings li.need .nm{color:var(--ox);text-decoration:underline dotted var(--ox)}
+.cl-ings li.have .nm{color:var(--ink)}
+.cl-missing{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--mut);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cl-missing strong{color:var(--ox)}
+.cl-method{margin-top:9px;background:none;border:none;color:var(--gold);font-family:'Fraunces',serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0}
+.cl-instr{font-size:13.5px;color:var(--mut);line-height:1.55;margin:8px 0 0;font-style:italic}
+.cl-instr a{color:var(--gold)}
+
+.cl-chips{display:flex;flex-wrap:wrap;gap:7px}
+.cl-chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);color:var(--mut);
+  font-family:'Spectral';font-size:13px;padding:6px 11px;border-radius:99px;cursor:pointer;transition:.15s}
+.cl-chip:hover{border-color:var(--gold);color:var(--ink)}
+.cl-chip.on{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:500}
+.cl-chip.on .rm{opacity:.6}
+.cl-chip.ghost{cursor:default;font-style:italic;font-size:12.5px}
+.cl-chip.ghost:hover{border-color:var(--line);color:var(--mut)}
+
+.cl-search{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:9px 12px;color:var(--mut)}
+.cl-search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-family:'Spectral';font-size:14px}
+.cl-addrow{display:flex;gap:8px}
+.cl-input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:9px 12px;color:var(--ink);font-family:'Spectral';font-size:14px;outline:none;transition:.15s;width:100%}
+.cl-input:focus{border-color:var(--gold)}
+.cl-input.sm{flex:0 0 78px}
+.cl-area{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:11px 13px;color:var(--ink);font-family:'Spectral';font-size:14px;outline:none;resize:vertical;line-height:1.5;width:100%}
+.cl-area:focus{border-color:var(--gold)}
+
+.cl-btn{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  font-family:'Fraunces',serif;font-weight:600;font-size:13px;letter-spacing:.5px;padding:9px 15px;border-radius:3px;cursor:pointer;transition:.16s;white-space:nowrap}
+.cl-btn:hover:not(:disabled){border-color:var(--gold)}
+.cl-btn:disabled{opacity:.4;cursor:not-allowed}
+.cl-btn.gold{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.cl-btn.gold:hover:not(:disabled){background:var(--gold2)}
+.cl-btn.ghost{background:transparent}
+.cl-btn.sm{padding:6px 11px;font-size:12px}
+.cl-mini{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px dashed var(--line);color:var(--gold);font-size:11.5px;font-family:'Fraunces';letter-spacing:.5px;padding:5px 9px;border-radius:99px;cursor:pointer}
+.cl-mini:hover{border-color:var(--gold)}
+
+.cl-rowbtns{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cl-rowbtns.end{justify-content:flex-end}
+
+.cl-list{display:flex;flex-direction:column;gap:8px}
+.cl-listitem{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.cl-listitem.col{flex-direction:column;align-items:stretch}
+.cl-listitem h4{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0;color:var(--ink)}
+.cl-listitem p{margin:4px 0 0;font-size:12.5px;color:var(--mut2);font-style:italic}
+.cl-listactions{display:flex;gap:4px}
+.cl-listactions button{background:none;border:1px solid transparent;color:var(--mut);padding:7px;border-radius:3px;cursor:pointer;transition:.15s}
+.cl-listactions button:hover{color:var(--gold);border-color:var(--line)}
+
+.cl-modeswitch{display:flex;gap:6px;flex-wrap:wrap}
+.cl-modebtn{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);color:var(--mut);font-family:'Fraunces';font-size:12.5px;letter-spacing:.4px;padding:9px 14px;border-radius:3px;cursor:pointer;transition:.15s}
+.cl-modebtn:hover{color:var(--ink)}
+.cl-modebtn.on{background:var(--panel2);color:var(--gold);border-color:var(--gold)}
+.cl-file{display:inline-flex;align-items:center;gap:9px;background:var(--panel);border:1px dashed var(--line);color:var(--mut);padding:14px 16px;border-radius:3px;cursor:pointer;font-size:13.5px}
+.cl-file:hover{border-color:var(--gold);color:var(--ink)}
+.cl-file input{display:none}
+.cl-preview{max-width:260px;border-radius:4px;border:1px solid var(--line)}
+.cl-err{display:flex;align-items:center;gap:8px;color:var(--ox);background:rgba(138,59,52,.12);border:1px solid var(--ox);border-radius:3px;padding:10px 13px;font-size:13.5px}
+.cl-multi{display:flex;align-items:center;gap:8px;color:var(--grn);font-size:13px;font-style:italic}
+
+.cl-editor{display:flex;flex-direction:column;gap:13px;background:var(--bg2);border:1px solid var(--line);border-radius:4px;padding:16px}
+.cl-field{display:flex;flex-direction:column;gap:6px}
+.cl-frow{display:flex;gap:12px;flex-wrap:wrap}
+.cl-frow .cl-field{flex:1;min-width:140px}
+.cl-flabel{font-family:'Fraunces';font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.cl-edings{display:flex;flex-direction:column;gap:6px}
+.cl-edhead{display:grid;grid-template-columns:22px 78px 1fr 1fr 30px;gap:8px;font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut2);font-family:'Fraunces';padding:0 2px}
+.cl-edrow{display:grid;grid-template-columns:22px 78px 1fr 1fr 30px;gap:8px;align-items:center;border-radius:3px}
+.cl-edrow.dragging{opacity:.4}
+.cl-edrow.over{box-shadow:inset 0 2px 0 var(--gold)}
+.cl-grip{display:flex;align-items:center;justify-content:center;color:var(--mut2);cursor:grab;touch-action:none}
+.cl-grip:hover{color:var(--gold)}
+.cl-grip:active{cursor:grabbing}
+.cl-iconbtn{background:none;border:1px solid var(--line);color:var(--mut);border-radius:3px;padding:7px;cursor:pointer}
+.cl-iconbtn:hover{color:var(--ox);border-color:var(--ox)}
+
+.cl-shoprow{display:flex;align-items:center;gap:10px}
+.cl-disc{flex:1;display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--ink);cursor:pointer;text-align:left;padding:0}
+.cl-shopname{font-family:'Fraunces',serif;font-weight:600;font-size:17px}
+.cl-badge{font-family:'Fraunces';font-size:12px;color:var(--gold);border:1px solid var(--gold);border-radius:99px;padding:2px 10px;white-space:nowrap}
+.cl-stepper{display:flex;align-items:center;gap:10px;color:var(--mut);font-style:italic;font-size:14px}
+.cl-stepper button{background:var(--panel);border:1px solid var(--line);color:var(--ink);width:30px;height:30px;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cl-stepper button:hover{border-color:var(--gold)}
+.cl-stepper strong{font-family:'Fraunces';font-size:18px;color:var(--gold);min-width:18px;text-align:center}
+.cl-plan{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 18px 16px}
+.cl-plan ol{list-style:none;margin:0;padding:0}
+.cl-plan li{padding:11px 0;border-bottom:1px dashed var(--line)}
+.cl-plan li:last-child{border-bottom:none}
+.cl-planhead{display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:'Fraunces';font-size:16px}
+.cl-planmeta{display:block;margin-top:3px;font-size:12.5px;color:var(--mut2);font-style:italic}
+.cl-plantotal{display:flex;align-items:center;gap:9px;margin-top:12px;color:var(--gold);font-style:italic;font-size:14px}
+.cl-plantotal b{color:var(--ink);font-style:normal}
+.cl-settings-btn{position:fixed;top:14px;right:14px;background:transparent;border:1px solid var(--line);color:var(--mut);padding:7px;border-radius:3px;cursor:pointer;z-index:10;transition:.15s;display:flex}
+.cl-settings-btn:hover{color:var(--gold);border-color:var(--gold)}
+.cl-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.cl-modal{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:24px;max-width:480px;width:100%;display:flex;flex-direction:column;gap:14px}
+@media(max-width:520px){.cl-edhead,.cl-edrow{grid-template-columns:18px 54px 1fr 24px}.cl-edhead span:nth-child(4){display:none}.cl-edrow .cl-input:nth-child(4){display:none}}
+`;
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>
